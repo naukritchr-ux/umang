@@ -1,22 +1,22 @@
-// api/chat.js
-import Groq from "groq-sdk";
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+import { getGroq } from "./_lib/clients.js";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ reply: "Method not allowed" });
+  if (req.method !== "POST") return res.status(405).json({ reply: "Method not allowed" });
+
+  const groq = getGroq();
+  if (!groq) {
+    return res.status(503).json({ reply: "Assistant is not configured yet." });
   }
 
   try {
-    const { message } = req.body;
+    const { message } = req.body || {};
 
     if (!message || !message.trim()) {
       return res.status(400).json({ reply: "Please type a question." });
     }
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       messages: [
         {
           role: "system",
@@ -27,10 +27,11 @@ export default async function handler(req, res) {
       ],
     });
 
-    const reply = completion.choices[0]?.message?.content || "Sorry, I don't have an answer for that.";
-    res.status(200).json({ reply });
+    const reply =
+      completion.choices[0]?.message?.content || "Sorry, I don't have an answer for that.";
+    return res.status(200).json({ reply });
   } catch (err) {
     console.error("Groq API error:", err);
-    res.status(500).json({ reply: "Sorry, something went wrong." });
+    return res.status(500).json({ reply: "Sorry, something went wrong. Please try again." });
   }
 }
