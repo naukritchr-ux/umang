@@ -17,7 +17,8 @@ const DEFAULT_ERROR_REPLY =
   "Sorry, I couldn't process that right now. Please try again, or request a call below.";
 
 // Change this to your deployed backend URL when you go live
-const BACKEND_URL = "http://localhost:5000/api/chat";
+// Same-origin API route (works on Vercel and locally via the Vite proxy)
+const BACKEND_URL = "/api/chat";
 
 async function askBot(message) {
   try {
